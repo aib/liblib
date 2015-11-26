@@ -1,48 +1,47 @@
 public class GcodeSerial extends PApplet {
-  private static final int RESPONSE_TRYAGAIN_DELAY = 10;
-  
-  private String readBuffer;
-  private Serial port;
-  
-  public GcodeSerial(String portName, int baud) {
-    readBuffer = "";
-    println("Initializing GcodeSerial for port " + portName + " at " + baud + " baud");
-    port = new Serial(this, portName, baud);
-  }
-  
-  public void serialEvent(Serial s) {
-    while (s.available() > 0) {
-      char c = s.readChar();
-      readBuffer += c;
-    }
-  }
+	private static final int RESPONSE_LOOP_DELAY = 10;
 
-  public void sendLine(String line) {
-    println("->" + line);
-    port.write(line + "\n");
-  }
+	private Serial port;
+	private String readBuffer;
 
-  public String getNextResponse() {
-    String nextResponse = "";
-    for (int i=0; i < readBuffer.length(); ++i) {
-      if (readBuffer.charAt(i) == '\r') continue;
-      if (readBuffer.charAt(i) == '\n') {
-        readBuffer = readBuffer.substring(i + 1);
-        println("<-" + nextResponse);
-        return nextResponse;
-      }
-      nextResponse += readBuffer.charAt(i);
-    }
+	public GcodeSerial(String portName, int baud) {
+		println("Initializing GcodeSerial for port " + portName + " at " + baud + " baud");
+		port = new Serial(this, portName, baud);
+		readBuffer = "";
+	}
 
-    return null;
-  }
+	public void serialEvent(Serial s) {
+		while (s.available() > 0) {
+			readBuffer += s.readChar();
+		}
+	}
 
-  public String waitForNextResponse() {
-    String response = getNextResponse();
-    while (response == null) {
-      delay(RESPONSE_TRYAGAIN_DELAY);
-      response = getNextResponse();
-    }
-    return response;
-  }
+	public void sendLine(String line) {
+		println("->" + line);
+		port.write(line + "\n");
+	}
+
+	public String getNextResponse() {
+		String nextResponse = "";
+		for (int i=0; i < readBuffer.length(); ++i) {
+			if (readBuffer.charAt(i) == '\r') continue;
+			if (readBuffer.charAt(i) == '\n') {
+				println("<-" + nextResponse);
+				readBuffer = readBuffer.substring(i + 1);
+				return nextResponse;
+			}
+			nextResponse += readBuffer.charAt(i);
+		}
+
+		return null;
+	}
+
+	public String waitForNextResponse() {
+		String response = getNextResponse();
+		while (response == null) {
+			delay(RESPONSE_LOOP_DELAY);
+			response = getNextResponse();
+		}
+		return response;
+	}
 }
