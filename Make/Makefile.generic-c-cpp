@@ -1,0 +1,14 @@
+#CC = ${CXX}
+#CFLAGS += -Wall 
+#CXXFLAGS += -Wall 
+#LDFLAGS += 
+#LDLIBS += 
+
+OBJS = $(addsuffix .o,$(basename $(wildcard *.c))) $(addsuffix .o,$(basename $(wildcard *.cpp)))
+
+all: main
+
+main: ${OBJS}
+
+clean:
+	${RM} ${OBJS} main
