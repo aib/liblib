@@ -22,10 +22,12 @@ class EventProfiler:
 		self.active_event = None
 
 	def _add_event(self, name, elapsed):
-		if name not in self.events:
-			self.events[name] = 0
+		if name in self.events:
+			ev = self.events[name]
+		else:
+			ev = (0, 0)
 
-		self.events[name] += elapsed
+		self.events[name] = (ev[0] + 1, ev[1] + elapsed)
 
 	def get_events(self):
 		return self.events
@@ -33,9 +35,12 @@ class EventProfiler:
 	def print_events(self, f=None):
 		if f is None: f = sys.stdout
 
-		total = sum(self.events.values())
+		if len(self.events) == 0:
+			return
+
+		total = sum(map(lambda ev: ev[1], self.events.values()))
 		longest_name_len = max(map(len, self.events.keys()))
 
-		print(("%-" + str(longest_name_len) + "s  Time  Percent") % ("Name",))
-		for name, elapsed in sorted(self.events.items(), key=lambda e: e[1], reverse=True):
-			print(("%-" + str(longest_name_len) + "s %6.3f   %2.0f%%") % (name, elapsed, elapsed*100/total), file=f)
+		print(("%-" + str(longest_name_len) + "s   Count  Time   Percent") % ("Name",))
+		for name, elapsed in sorted(self.events.items(), key=lambda e: e[1][1], reverse=True):
+			print(("%-" + str(longest_name_len) + "s %7d %7.4f   %2.0f%%") % (name, elapsed[0], elapsed[1], elapsed[1]*100/total), file=f)
